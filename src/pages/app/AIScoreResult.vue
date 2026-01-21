@@ -10,6 +10,15 @@
       </div>
     </div>
 
+
+      <!-- 添加AI评分按钮 -->
+  <div class="action-buttons" style="margin-bottom: 20px;">
+    <button @click="triggerAIScoring" :disabled="isScoring" class="ai-score-btn">
+      {{ isScoring ? 'AI评分中...' : '获取AI评分' }}
+    </button>
+  </div>   
+
+
     <!-- 分数展示卡片 -->
     <div class="score-display-card">
       <div class="score-main">
@@ -207,6 +216,53 @@ const startRescan = () => {
   // 或者使用路由跳转
   // router.push(`/app/rescan/${workOrderId.value}`)
 }
+
+
+// AI评分状态
+const isScoring = ref(false)
+
+// 触发AI评分
+const triggerAIScoring = async () => {
+  isScoring.value = true
+  try {
+    // 调用AI评分接口
+    const response = await fetch(`/v1/app/work-orders/${workOrderId.value}/ai-scoring`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({})
+    })
+    
+    if (response.ok) {
+      const result = await response.json()
+      console.log('AI评分结果:', result)
+      
+      if (result.score !== undefined) {
+        // 更新页面显示的分数
+        score.value = result.score
+        isQualified.value = result.score >= 80 // 80分合格
+        
+        ElMessage.success(`AI评分完成！得分：${result.score}`)
+      } else {
+        ElMessage.warning('AI评分返回数据格式异常')
+      }
+    } else {
+      throw new Error(`HTTP ${response.status}`)
+    }
+  } catch (error) {
+    console.error('AI评分失败:', error)
+    
+    // 如果AI服务不可用，使用模拟数据
+    ElMessage.info('AI服务暂不可用，使用模拟数据演示')
+    score.value = Math.floor(Math.random() * 30) + 70 // 70-99随机分
+    isQualified.value = score.value >= 80
+  } finally {
+    isScoring.value = false
+  }
+}
+
 
 // 组件挂载
 onMounted(() => {
@@ -500,4 +556,37 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
 }
+
+
+
+.action-buttons {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.ai-score-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.ai-score-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.ai-score-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #ccc 0%, #999 100%);
+}
+
+
 </style>
