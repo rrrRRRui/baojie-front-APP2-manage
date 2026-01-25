@@ -61,48 +61,6 @@ async function apiRequest(path, {
     }
 }
 
-// ==================== APP端API ====================
-
-/**
- * 2.5 获取AI评分结果C ：分数展示+合格状态标识
- * @param {number} workOrderId - 工单ID
- * @returns {Promise} - 评分结果
- */
-export async function getAIScoreResult(workOrderId) {
-
-    // 添加查询参数传递
-    const queryString = Object.keys(params).length > 0
-        ? '?' + new URLSearchParams(params).toString()
-        : ''
-
-    return apiRequest(`/app/work-orders/${workOrderId}/scores`, {
-        method: 'GET'
-    })
-}
-
-/**
- * 2.6 复扫处理C :不合格触发复扫+重新上传流程
- * @param {number} workOrderId - 工单ID
- * @param {Object} data - 复扫原因 { reason: string }
- * @returns {Promise} - 复扫结果
- */
-export async function processRescan(workOrderId, data) {
-    return apiRequest(`/app/work-orders/${workOrderId}/rescan`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-    })
-}
-
-/**
- * 2.2 获取工单详情A（需要获取工单基本信息）
- * @param {number} workOrderId - 工单ID
- * @returns {Promise} - 工单详情
- */
-export async function getWorkOrderDetail(workOrderId) {
-    return apiRequest(`/app/work-orders/${workOrderId}`, {
-        method: 'GET'
-    })
-}
 
 // ==================== 管理后台API ====================
 
@@ -118,10 +76,6 @@ export async function getAIScoreManagement(params = {}) {
 }
 
 export default {
-    // APP端
-    getAIScoreResult,
-    processRescan,
-    getWorkOrderDetail,
 
     // 管理后台
     getAIScoreManagement
