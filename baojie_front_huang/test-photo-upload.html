@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拍照上传功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .test-steps {
+            list-style: none;
+            padding: 0;
+        }
+        .test-steps li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .test-steps li:last-child {
+            border-bottom: none;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #0056CC;
+        }
+        .btn.secondary {
+            background: #6c757d;
+        }
+        .btn.secondary:hover {
+            background: #545b62;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 拍照上传功能测试</h1>
+        
+        <div class="test-section">
+            <h2>测试场景 1: 现场拍摄 + 多张上传 + 进度展示 + 失败重试</h2>
+            <ol class="test-steps">
+                <li>
+                    <strong>步骤 1:</strong> 点击"拍照"按钮
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 2:</strong> 验证相机权限请求和预览界面
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 3:</strong> 拍摄多张照片（至少3张）
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 4:</strong> 验证图片预览和文件信息显示
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 5:</strong> 点击"上传所有图片"按钮
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 6:</strong> 观察上传进度条和状态变化
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 7:</strong> 验证部分文件上传失败（模拟20%失败率）
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 8:</strong> 点击失败文件的"重试"按钮
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 9:</strong> 验证重试功能和最终成功状态
+                    <span class="status pending">待测试</span>
+                </li>
+            </ol>
+            <button class="btn" onclick="startTest1()">开始测试场景1</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>测试场景 2: 相册选择 + 多张上传 + 进度展示 + 失败重试</h2>
+            <ol class="test-steps">
+                <li>
+                    <strong>步骤 1:</strong> 点击"相册"按钮
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 2:</strong> 从相册选择多张图片（至少3张）
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 3:</strong> 验证图片预览和压缩处理
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 4:</strong> 验证文件大小限制（尝试选择超过10MB的文件）
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 5:</strong> 验证文件数量限制（尝试选择超过9张图片）
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 6:</strong> 点击"上传所有图片"按钮
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 7:</strong> 观察批量上传进度和并发控制
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 8:</strong> 验证上传统计信息显示
+                    <span class="status pending">待测试</span>
+                </li>
+                <li>
+                    <strong>步骤 9:</strong> 测试"重试失败"批量重试功能
+                    <span class="status pending">待测试</span>
+                </li>
+            </ol>
+            <button class="btn" onclick="startTest2()">开始测试场景2</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>功能验证清单</h2>
+            <ul class="test-steps">
+                <li>✅ 相机权限请求和处理</li>
+                <li>✅ 前后摄像头切换功能</li>
+                <li>✅ 图片压缩和优化</li>
+                <li>✅ 文件格式验证</li>
+                <li>✅ 文件大小限制</li>
+                <li>✅ 文件数量限制</li>
+                <li>✅ 上传进度显示</li>
+                <li>✅ 并发上传控制</li>
+                <li>✅ 错误处理和重试</li>
+                <li>✅ 批量重试功能</li>
+                <li>✅ 上传统计信息</li>
+                <li>✅ 响应式设计</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h2>测试结果</h2>
+            <div id="test-results">
+                <p>请完成上述测试场景，结果将在这里显示。</p>
+            </div>
+            <button class="btn secondary" onclick="clearResults()">清空结果</button>
+        </div>
+    </div>
+
+    <script>
+        function startTest1() {
+            alert('测试场景1：现场拍摄功能\n\n请按照步骤进行测试：\n1. 打开应用的拍照页面\n2. 点击"拍照"按钮\n3. 允许相机权限\n4. 拍摄多张照片\n5. 测试上传和重试功能');
+            window.open('/photo-upload', '_blank');
+        }
+        
+        function startTest2() {
+            alert('测试场景2：相册选择功能\n\n请按照步骤进行测试：\n1. 打开应用的拍照页面\n2. 点击"相册"按钮\n3. 选择多张图片\n4. 测试各种限制和上传功能');
+            window.open('/photo-upload', '_blank');
+        }
+        
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '<p>请完成上述测试场景，结果将在这里显示。</p>';
+        }
+        
+        // 模拟测试结果更新
+        function updateTestResult(scenario, step, status) {
+            const results = document.getElementById('test-results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<p>[${timestamp}] 场景${scenario} - 步骤${step}: <span class="status ${status}">${status}</span></p>`;
+        }
+    </script>
+</body>
+</html>

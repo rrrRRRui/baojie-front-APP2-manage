@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拍照上传功能独立测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .upload-area {
+            margin-bottom: 30px;
+        }
+        
+        .upload-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            max-width: 150px;
+            font-size: 16px;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #007AFF;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056CC;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .file-item {
+            position: relative;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .file-preview {
+            position: relative;
+            width: 100%;
+            height: 120px;
+        }
+        
+        .file-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .file-info {
+            padding: 8px;
+            font-size: 12px;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .file-size {
+            color: #666;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+        }
+        
+        .upload-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .upload-all-btn {
+            flex: 1;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #007AFF;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.uploading {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .camera-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .camera-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .camera-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .camera-preview {
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
+        
+        .camera-preview video {
+            max-width: 100%;
+            max-height: 60vh;
+            object-fit: contain;
+        }
+        
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: #f5f5f5;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 拍照上传功能测试</h1>
+        
+        <div class="upload-area">
+            <div class="upload-actions">
+                <button onclick="openCamera()" class="btn btn-primary">
+                    📷 拍照
+                </button>
+                <button onclick="openGallery()" class="btn btn-secondary">
+                    🖼️ 相册
+                </button>
+            </div>
+            
+            <input id="cameraInput" type="file" accept="image/*" capture="environment" onchange="handleCameraCapture(event)" style="display: none">
+            <input id="galleryInput" type="file" accept="image/*" multiple onchange="handleGallerySelect(event)" style="display: none">
+        </div>
+        
+        <div id="fileList" class="hidden">
+            <h3>已选择的图片 (<span id="fileCount">0</span>)</h3>
+            <div id="fileGrid" class="file-grid"></div>
+            
+            <div class="upload-controls">
+                <button onclick="uploadAll()" class="btn btn-primary upload-all-btn" id="uploadBtn">
+                    上传所有图片
+                </button>
+                <button onclick="clearFiles()" class="btn btn-secondary">
+                    清空
+                </button>
+            </div>
+            
+            <div id="uploadProgress" class="hidden">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div id="progressText">准备上传...</div>
+            </div>
+        </div>
+        
+        <!-- 相机模态框 -->
+        <div id="cameraModal" class="camera-modal hidden">
+            <div class="camera-container">
+                <div class="camera-header">
+                    <h3>拍照</h3>
+                    <button onclick="closeCameraModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+                </div>
+                
+                <div class="camera-preview">
+                    <video id="videoElement" autoplay playsinline></video>
+                    <canvas id="canvasElement" style="display: none"></canvas>
+                </div>
+                
+                <div class="camera-controls">
+                    <button onclick="switchCamera()" class="btn btn-secondary" id="switchBtn" style="display: none;">
+                        🔄 切换摄像头
+                    </button>
+                    <button onclick="capturePhoto()" class="btn btn-primary">
+                        📷 拍照
+                    </button>
+                    <button onclick="closeCameraModal()" class="btn btn-secondary">
+                        取消
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="log" id="log">
+            <strong>测试日志:</strong><br>
+            等待操作...
+        </div>
+    </div>
+
+    <script>
+        let files = [];
+        let mediaStream = null;
+        let facingMode = 'environment';
+        let hasMultipleCameras = false;
+        
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<br>[${timestamp}] ${message}`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        // 检测可用摄像头
+        async function detectCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                hasMultipleCameras = videoDevices.length > 1;
+                log(`检测到 ${videoDevices.length} 个摄像头设备`);
+                
+                if (hasMultipleCameras) {
+                    document.getElementById('switchBtn').style.display = 'block';
+                }
+            } catch (error) {
+                log(`摄像头检测失败: ${error.message}`);
+            }
+        }
+        
+        // 打开相机
+        async function openCamera() {
+            log('尝试打开相机...');
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                log('浏览器不支持摄像头API，降级到文件选择');
+                document.getElementById('cameraInput').click();
+                return;
+            }
+            
+            try {
+                document.getElementById('cameraModal').classList.remove('hidden');
+                await startCamera();
+                await detectCameras();
+            } catch (error) {
+                log(`相机启动失败: ${error.message}`);
+                document.getElementById('cameraModal').classList.add('hidden');
+                document.getElementById('cameraInput').click();
+            }
+        }
+        
+        // 启动相机
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: facingMode,
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                };
+                
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById('videoElement').srcObject = mediaStream;
+                log(`相机启动成功，使用${facingMode === 'user' ? '前置' : '后置'}摄像头`);
+            } catch (error) {
+                log(`相机启动失败: ${error.message}`);
+                throw error;
+            }
+        }
+        
+        // 停止相机
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+                log('相机已停止');
+            }
+        }
+        
+        // 切换摄像头
+        async function switchCamera() {
+            stopCamera();
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            await startCamera();
+        }
+        
+        // 拍照
+        function capturePhoto() {
+            const video = document.getElementById('videoElement');
+            const canvas = document.getElementById('canvasElement');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            ctx.drawImage(video, 0, 0);
+            
+            canvas.toBlob(async (blob) => {
+                if (blob) {
+                    const file = new File([blob], `photo_${Date.now()}.jpg`, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    
+                    log(`拍照成功，文件大小: ${formatFileSize(file.size)}`);
+                    
+                    // 压缩图片
+                    const compressedFile = await compressImage(file, 0.8);
+                    addFile(compressedFile);
+                    closeCameraModal();
+                }
+            }, 'image/jpeg', 0.9);
+        }
+        
+        // 关闭相机模态框
+        function closeCameraModal() {
+            stopCamera();
+            document.getElementById('cameraModal').classList.add('hidden');
+        }
+        
+        // 打开相册
+        function openGallery() {
+            log('打开相册选择');
+            document.getElementById('galleryInput').click();
+        }
+        
+        // 处理相机拍照
+        async function handleCameraCapture(event) {
+            const selectedFiles = Array.from(event.target.files || []);
+            log(`相机拍照获得 ${selectedFiles.length} 个文件`);
+            
+            for (const file of selectedFiles) {
+                const compressedFile = await compressImage(file, 0.8);
+                addFile(compressedFile);
+            }
+            
+            event.target.value = '';
+        }
+        
+        // 处理相册选择
+        async function handleGallerySelect(event) {
+            const selectedFiles = Array.from(event.target.files || []);
+            log(`相册选择获得 ${selectedFiles.length} 个文件`);
+            
+            const imageFiles = selectedFiles.filter(file => file.type.startsWith('image/'));
+            
+            if (imageFiles.length !== selectedFiles.length) {
+                log(`过滤掉 ${selectedFiles.length - imageFiles.length} 个非图片文件`);
+            }
+            
+            for (const file of imageFiles) {
+                const compressedFile = await compressImage(file, 0.8);
+                addFile(compressedFile);
+            }
+            
+            event.target.value = '';
+        }
+        
+        // 添加文件
+        function addFile(file) {
+            // 检查文件大小
+            if (file.size > 10 * 1024 * 1024) {
+                log(`文件 ${file.name} 超过10MB限制，已跳过`);
+                return;
+            }
+            
+            // 检查文件数量
+            if (files.length >= 9) {
+                log('已达到最大文件数量限制(9张)');
+                return;
+            }
+            
+            const fileObj = {
+                id: Date.now() + Math.random().toString(36),
+                file: file,
+                url: URL.createObjectURL(file),
+                status: 'pending',
+                progress: 0
+            };
+            
+            files.push(fileObj);
+            log(`添加文件: ${file.name} (${formatFileSize(file.size)})`);
+            updateFileList();
+        }
+        
+        // 更新文件列表显示
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            const fileGrid = document.getElementById('fileGrid');
+            const fileCount = document.getElementById('fileCount');
+            
+            if (files.length === 0) {
+                fileList.classList.add('hidden');
+                return;
+            }
+            
+            fileList.classList.remove('hidden');
+            fileCount.textContent = files.length;
+            
+            fileGrid.innerHTML = files.map(file => `
+                <div class="file-item" data-id="${file.id}">
+                    <div class="file-preview">
+                        <img src="${file.url}" alt="${file.file.name}">
+                        <button class="remove-btn" onclick="removeFile('${file.id}')">×</button>
+                    </div>
+                    <div class="file-info">
+                        <div class="file-name">${file.file.name}</div>
+                        <div class="file-size">${formatFileSize(file.file.size)}</div>
+                        <div class="status ${file.status}">${getStatusText(file.status)}</div>
+                        ${file.status === 'uploading' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${file.progress}%"></div></div>` : ''}
+                        ${file.status === 'error' ? `<button onclick="retryUpload('${file.id}')" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;">重试</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 移除文件
+        function removeFile(id) {
+            const index = files.findIndex(f => f.id === id);
+            if (index > -1) {
+                URL.revokeObjectURL(files[index].url);
+                files.splice(index, 1);
+                log(`移除文件: ${files[index]?.file.name || 'unknown'}`);
+                updateFileList();
+            }
+        }
+        
+        // 清空文件
+        function clearFiles() {
+            files.forEach(file => URL.revokeObjectURL(file.url));
+            files = [];
+            log('清空所有文件');
+            updateFileList();
+        }
+        
+        // 上传所有文件
+        async function uploadAll() {
+            const pendingFiles = files.filter(f => f.status === 'pending' || f.status === 'error');
+            
+            if (pendingFiles.length === 0) {
+                log('没有需要上传的文件');
+                return;
+            }
+            
+            log(`开始上传 ${pendingFiles.length} 个文件`);
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('uploadProgress').classList.remove('hidden');
+            
+            let completed = 0;
+            const total = pendingFiles.length;
+            
+            // 并发上传，限制并发数为3
+            const concurrency = 3;
+            for (let i = 0; i < pendingFiles.length; i += concurrency) {
+                const batch = pendingFiles.slice(i, i + concurrency);
+                await Promise.all(batch.map(async (file) => {
+                    await uploadFile(file);
+                    completed++;
+                    updateProgress(completed, total);
+                }));
+            }
+            
+            document.getElementById('uploadBtn').disabled = false;
+            document.getElementById('uploadProgress').classList.add('hidden');
+            
+            const successCount = files.filter(f => f.status === 'success').length;
+            const errorCount = files.filter(f => f.status === 'error').length;
+            log(`上传完成: 成功 ${successCount} 个，失败 ${errorCount} 个`);
+        }
+        
+        // 上传单个文件
+        async function uploadFile(file) {
+            file.status = 'uploading';
+            file.progress = 0;
+            updateFileList();
+            
+            try {
+                // 模拟上传进度
+                for (let i = 0; i <= 100; i += Math.random() * 20) {
+                    file.progress = Math.min(100, Math.floor(i));
+                    updateFileList();
+                    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+                }
+                
+                file.progress = 100;
+                
+                // 模拟20%失败率
+                if (Math.random() < 0.2) {
+                    throw new Error('网络连接超时，请重试');
+                }
+                
+                file.status = 'success';
+                log(`文件 ${file.file.name} 上传成功`);
+            } catch (error) {
+                file.status = 'error';
+                file.error = error.message;
+                log(`文件 ${file.file.name} 上传失败: ${error.message}`);
+            }
+            
+            updateFileList();
+        }
+        
+        // 重试上传
+        async function retryUpload(id) {
+            const file = files.find(f => f.id === id);
+            if (file && file.status === 'error') {
+                log(`重试上传文件: ${file.file.name}`);
+                await uploadFile(file);
+            }
+        }
+        
+        // 更新进度
+        function updateProgress(completed, total) {
+            const percentage = Math.round((completed / total) * 100);
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = `上传进度: ${completed}/${total} (${percentage}%)`;
+        }
+        
+        // 获取状态文本
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '待上传',
+                'uploading': '上传中',
+                'success': '成功',
+                'error': '失败'
+            };
+            return statusMap[status] || status;
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 图片压缩
+        function compressImage(file, quality = 0.8, maxWidth = 1920, maxHeight = 1080) {
+            return new Promise((resolve) => {
+                if (!file.type.startsWith('image/')) {
+                    resolve(file);
+                    return;
+                }
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = () => {
+                    let { width, height } = img;
+                    
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width *= ratio;
+                        height *= ratio;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], file.name, {
+                                type: file.type,
+                                lastModified: Date.now()
+                            });
+                            
+                            if (compressedFile.size > file.size) {
+                                resolve(file);
+                            } else {
+                                resolve(compressedFile);
+                            }
+                        } else {
+                            resolve(file);
+                        }
+                    }, file.type, quality);
+                };
+                
+                img.onerror = () => resolve(file);
+                img.src = URL.createObjectURL(file);
+            });
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('页面加载完成，拍照上传功能已就绪');
+            log('支持的功能: 相机拍照、相册选择、图片压缩、批量上传、进度显示、失败重试');
+        });
+    </script>
+</body>
+</html>
