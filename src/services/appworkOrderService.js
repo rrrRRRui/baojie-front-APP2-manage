@@ -70,11 +70,6 @@ async function apiRequest(path, {
  */
 export async function getAIScoreResult(workOrderId) {
 
-    // 添加查询参数传递
-    const queryString = Object.keys(params).length > 0
-        ? '?' + new URLSearchParams(params).toString()
-        : ''
-
     return apiRequest(`/app/work-orders/${workOrderId}/scores`, {
         method: 'GET'
     })
@@ -104,18 +99,6 @@ export async function getWorkOrderDetail(workOrderId) {
     })
 }
 
-// ==================== 管理后台API ====================
-
-/**
- * 3.6 获取AI评分管理C - 你的任务：评分结果查看+明细展示
- * @param {Object} params - 查询参数
- * @returns {Promise} - 评分管理数据
- */
-export async function getAIScoreManagement(params = {}) {
-    return apiRequest('/admin/scores/management', {
-        method: 'GET'
-    })
-}
 
 export default {
     // APP端
@@ -123,6 +106,5 @@ export default {
     processRescan,
     getWorkOrderDetail,
 
-    // 管理后台
-    getAIScoreManagement
+
 }
