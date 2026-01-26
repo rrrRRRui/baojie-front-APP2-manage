@@ -1,13 +1,29 @@
 <script setup></script>
 
 <template>
-  <router-view></router-view>
+  <router-view />
+  
+  <div v-if="$route.path.startsWith('/app')" class="bottom-nav">
+    <div class="nav-item" @click="$router.push('/app/orders')">工单</div>
+    <div class="nav-item" @click="$router.push('/app/profile')">我的</div>
+  </div>
 </template>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  font-family: 'Microsoft Yahei', 'PingFang SC', 'Avenir', 'Segoe UI', 'Hiragino Sans GB', STHeiti, 'Microsoft Sans Serif', 'WenQuanYi Micro Hei', sans-serif;
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 50px;
+  background: white;
+  display: flex;
+  border-top: 1px solid #eee;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
 }
 </style>

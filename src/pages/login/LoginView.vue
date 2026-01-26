@@ -1,29 +1,18 @@
 <script setup>
-import {onMounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
-// 定义响应式数据
+// 1. 定义响应式数据
 const username = ref('')
 const password = ref('')
 const msgBox = ref('')
 const isSubmitting = ref(false)
 
-// 获取路由实例
+// 2. 获取路由实例
 const router = useRouter()
 
-
-const getIsLogin = () => {
-  setInterval(() => {
-    let token = localStorage.getItem("token");
-    if (token) {
-      router.replace('/')
-    }
-  }, 100)
-}
-
-
-
-// 登录表单提交处理函数
+// 3. 登录表单提交处理函数
 const handleSubmit = async () => {
   // 清空旧提示
   msgBox.value = ''
@@ -31,6 +20,7 @@ const handleSubmit = async () => {
   // 验证输入
   if (!username.value.trim() || !password.value.trim()) {
     msgBox.value = '请填写用户名和密码'
+    ElMessage.warning('请填写用户名和密码')
     return
   }
 
@@ -38,10 +28,13 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try {
-    // 发送登录请求
+    // 根据接口文档 ，登录接口为 /v1/auth/login，请求方式 POST
+    // 注意：在 Vite 开发环境下，通常会通过 proxy 转发 /api，请确认你的 vite.config.js 配置
     const res = await fetch('/api/v1/auth/login', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
       body: JSON.stringify({
         username: username.value.trim(),
         password: password.value.trim()
@@ -50,24 +43,27 @@ const handleSubmit = async () => {
 
     const data = await res.json()
 
+    // 根据接口规范 ，成功时 code 应为 0
     if (res.ok && data.code === 0) {
-      // 缓存 token 和用户信息
+      // 存储 token [cite: 2, 4]
       localStorage.setItem('token', data.data.token)
+      // 存储用户信息，供个人中心使用 
       localStorage.setItem('user_info', JSON.stringify(data.data.user_info))
 
-      // 显示成功消息并跳转
       msgBox.value = '登录成功，正在跳转…'
-      const redirect = router.currentRoute.value.query.redirect
-      await router.replace(typeof redirect === 'string' ? redirect : { name: 'home' })
+      ElMessage.success('登录成功')
+
+      // 处理登录后的重定向逻辑 
+      const redirectPath = router.currentRoute.value.query.redirect
+      await router.replace(typeof redirectPath === 'string' ? redirectPath : '/home')
     } else {
-      // https://momenta.jobs.feishu.cn/s/eXB-sRTzTMc
-      // QUWG3T9
-      throw new Error(data.message || '登录失败')
+      // 处理后端返回的错误信息 
+      throw new Error(data.message || '登录失败，请检查用户名或密码')
     }
   } catch (err) {
     msgBox.value = err.message
+    ElMessage.error(err.message)
   } finally {
-    // 重置提交状态
     isSubmitting.value = false
   }
 }
@@ -84,36 +80,39 @@ const handleSubmit = async () => {
       <form @submit.prevent="handleSubmit" id="login-form">
         <div class="form-field">
           <input
-              type="text"
-              id="username"
-              placeholder="用户名 / 邮箱"
-              required
-              v-model="username"
+            type="text"
+            id="username"
+            placeholder="用户名 / 邮箱"
+            required
+            v-model="username"
+            :disabled="isSubmitting"
           />
         </div>
         <div class="form-field">
           <input
-              type="password"
-              id="password"
-              placeholder="密码"
-              required
-              v-model="password"
+            type="password"
+            id="password"
+            placeholder="密码"
+            required
+            v-model="password"
+            :disabled="isSubmitting"
           />
         </div>
 
         <button
-            type="submit"
-            class="btn-login"
-            :disabled="isSubmitting"
-            :style="{ opacity: isSubmitting ? 0.6 : 1 }"
+          type="submit"
+          class="btn-login"
+          :disabled="isSubmitting"
         >
-          {{ isSubmitting ? '登录中...' : '登 录' }}
+          <span v-if="isSubmitting">登录中...</span>
+          <span v-else>登 录</span>
         </button>
 
         <p
-            id="login-msg"
-            class="login-msg"
-            :style="{ color: msgBox.includes('成功') ? '#52c41a' : '#f5222d' }"
+          id="login-msg"
+          class="login-msg"
+          :style="{ color: msgBox.includes('成功') ? '#52c41a' : '#f5222d' }"
+          v-if="msgBox"
         >
           {{ msgBox }}
         </p>
@@ -127,24 +126,17 @@ const handleSubmit = async () => {
 </template>
 
 <style scoped>
-/* ===== 全局 ===== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* 保持原有 UI 样式不变  */
 .login-wrapper {
   width: 100%;
-  min-height: 100vh;         /* 占满视口高度 */
+  min-height: 100vh;
   display: flex;
-  align-items: center;        /* 纵向居中 */
-  justify-content: center;    /* 横向居中 */
+  align-items: center;
+  justify-content: center;
   background: #f5f7fa;
-  padding: 24px;              /* 防止超小屏幕贴边 */
+  padding: 24px;
 }
 
-/* ===== 登录卡片 ===== */
 .login-card {
   width: 380px;
   background: #fff;
@@ -156,7 +148,6 @@ const handleSubmit = async () => {
   gap: 24px;
 }
 
-/* 头部 Logo + 标题 */
 .login-header {
   display: flex;
   flex-direction: column;
@@ -175,7 +166,6 @@ const handleSubmit = async () => {
   color: #333;
 }
 
-/* 表单字段 */
 .form-field {
   margin-bottom: 18px;
 }
@@ -195,7 +185,6 @@ const handleSubmit = async () => {
   box-shadow: 0 0 0 2px rgba(24, 144, 255, .15);
 }
 
-/* 登录按钮 */
 .btn-login {
   width: 100%;
   height: 46px;
@@ -207,24 +196,21 @@ const handleSubmit = async () => {
   cursor: pointer;
 }
 
-.btn-login:hover {
-  opacity: .9;
+.btn-login:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* 错误 / 成功提示文字 */
 .login-msg {
   margin-top: 12px;
   font-size: 14px;
   text-align: center;
-  color: #f5222d; /* 默认红色；成功时 JS 会改成绿色 */
 }
 
-/* 底部版权 */
 .login-footer {
   margin-top: 8px;
   font-size: 12px;
   color: #999;
   text-align: center;
 }
-
 </style>
