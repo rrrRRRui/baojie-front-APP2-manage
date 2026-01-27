@@ -35,29 +35,40 @@
 
 <script setup>
 import { ref, defineEmits } from 'vue';
-import { updateOrderActionApi } from '../api/orderService';
+import { confirmReceiveApi, confirmArriveApi } from '../api/orderService';
 
-const emit = defineEmits(['status-update']); // 通知父组件
+const emit = defineEmits(['status-update']);
 const activeStep = ref(0);
 const loading = ref(false);
 const logs = ref({ receive: '', arrive: '' });
 
+// 这是一个通用的处理函数
 const handleAction = async (type) => {
   loading.value = true;
-  await updateOrderActionApi('GD-1001', type); // 调用接口
-  
-  const nowTime = new Date().toLocaleTimeString();
-  
-  if (type === 'RECEIVE') {
-    activeStep.value = 1;
-    logs.value.receive = nowTime;
-    emit('status-update', 'working'); // 告诉父组件：我在路上了
-  } else {
-    activeStep.value = 2;
-    logs.value.arrive = nowTime;
-    emit('status-update', 'arrived'); // 告诉父组件：我到了
+  try {
+    // 依然使用 ID 3
+    if (type === 'RECEIVE') {
+      await confirmReceiveApi(3);
+      // 如果成功：
+      const now = new Date().toLocaleTimeString();
+      logs.value.receive = now;
+      activeStep.value = 1;
+      emit('status-update', 'working');
+      
+    } else if (type === 'ARRIVE') {
+      await confirmArriveApi(3);
+      // 如果成功：
+      const now = new Date().toLocaleTimeString();
+      logs.value.arrive = now;
+      activeStep.value = 2;
+      emit('status-update', 'arrived');
+    }
+  } catch (error) {
+    // 这里会捕获到 4002 错误
+    // 比如提示 "工单已完成，无需确认到场"
+    // 这证明接口通了！只是逻辑被后端拦截了
+  } finally {
+    loading.value = false;
   }
-  
-  loading.value = false;
 };
 </script>

@@ -1,79 +1,76 @@
 import axios from 'axios';
+import { showToast } from 'vant';
 
-// ==========================================
-// 1. axios 实例配置 (以后改这里连接后端)
-// ==========================================
+// 1. 基础配置
 const service = axios.create({
-  // baseURL: 'http://localhost:8080/api', // TODO: 后端接口地址填在这里
-  timeout: 5000
+  baseURL: '/api', 
+  timeout: 10000
 });
 
-// ==========================================
-// 2. 接口定义 (Mock 模拟数据模式)
-// ==========================================
+// 2. 请求拦截器：注入 Token
+service.interceptors.request.use(config => {
+  // 这里的 Token 是你刚才提供的
+  const token = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3LCJ1c2VybmFtZSI6Inh1ZG9uZyIsInJvbGUiOiJcdTRmZGRcdTZkMDFcdTRlYmFcdTU0NTgiLCJhdmF0YXIiOm51bGwsImV4cCI6MTc3MDA5MTM5N30.SKxET1k5kYBIDC6TA6NAJ1NmD-cqCfwiWy7XqxBdCm8';
+  config.headers['Authorization'] = token;
+  return config;
+});
+
+// 3. 响应拦截器：处理后端返回的 code 0 和 4002
+service.interceptors.response.use(
+  response => {
+    const res = response.data;
+    
+    // 你的后端：code === 0 代表成功
+    if (res.code === 0) {
+      return res.data; // 直接把 data 里的内容吐给组件
+    } 
+    // 特殊情况：code 4002 代表业务逻辑错误（比如重复接单），不算网络错误，但要提示
+    else {
+      showToast(res.message || '操作失败');
+      console.warn('业务异常:', res.message);
+      // 返回一个 Promise.reject 以便组件能捕获到这个错误，停止 loading 动画
+      return Promise.reject(new Error(res.message));
+    }
+  },
+  error => {
+    showToast('网络连接错误');
+    return Promise.reject(error);
+  }
+);
+
+// ===================== 真实接口定义 =====================
 
 /**
- * 获取工单详情
- * @param {String} orderId 工单号
+ * 1. 获取工单详情
+ * 路径: /v1/admin/work-orders/{id}
  */
 export const getOrderDetailApi = (orderId) => {
-  // --- 真实模式 (以后解开这行注释) ---
-  // return service.get(`/worker-li/orders/${orderId}`);
-
-  // --- 模拟模式 (Mock) ---
-  return new Promise((resolve) => {
-    console.log(`[API] 正在请求工单详情: ${orderId}`);
-    setTimeout(() => {
-      resolve({
-        code: 200,
-        data: {
-          id: orderId,
-          projectName: 'worker-li', // 项目标识
-          area: '行政楼 - 302 会议室',
-          task: '深度保洁（地面+窗户）',
-          level: '加急',
-          status: 'PENDING' // PENDING, WORKING, DONE
-        }
-      });
-    }, 500);
-  });
+  return service.get(`/v1/admin/work-orders/${orderId}`);
 };
 
 /**
- * 提交接单 / 到场动作
- * @param {String} orderId 工单号
- * @param {String} action 类型: RECEIVE(接单) | ARRIVE(到场)
+ * 2. 接单确认
+ * 路径: /v1/app/work-orders/{id}/accept
  */
-export const updateOrderActionApi = (orderId, action) => {
-  // --- 真实模式 ---
-  // return service.post(`/worker-li/orders/action`, { orderId, action });
-
-  // --- 模拟模式 ---
-  return new Promise((resolve) => {
-    console.log(`[API] 提交动作: ${action}`);
-    setTimeout(() => {
-      resolve({ code: 200, msg: '操作成功' });
-    }, 600);
-  });
+export const confirmReceiveApi = (orderId) => {
+  return service.post(`/v1/app/work-orders/${orderId}/accept`);
 };
 
 /**
- * 提交完工确认
- * @param {Object} data 包含图片和确认信息的对象
+ * 3. 到场确认
+ * 路径: /v1/app/work-orders/{id}/arrive
  */
-export const completeOrderApi = (data) => {
-  // --- 真实模式 ---
-  // return service.post(`/worker-li/orders/complete`, data);
+export const confirmArriveApi = (orderId) => {
+  return service.post(`/v1/app/work-orders/${orderId}/arrive`);
+};
 
-  // --- 模拟模式 ---
-  return new Promise((resolve) => {
-    console.log(`[API] 提交完工数据:`, data);
-    setTimeout(() => {
-      // 模拟返回一个追溯码
-      resolve({ 
-        code: 200, 
-        traceCode: 'TRACE-' + Date.now().toString().slice(-6) 
-      });
-    }, 1000);
+/**
+ * 4. 完工提交 (获取AI评分)
+ * 路径猜测: /v1/app/work-orders/{id}/ai-score (根据截图推测，如果不对应请修改)
+ */
+export const completeOrderApi = (orderId, fileList) => {
+  // 这里通常需要上传 FormData，先保留基础结构
+  return service.post(`/v1/app/work-orders/${orderId}/ai-score`, {
+    // 你的后端可能需要图片地址或 base64，这里暂且留空，先把流程跑通
   });
 };

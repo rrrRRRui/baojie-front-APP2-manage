@@ -15,17 +15,30 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getOrderDetailApi } from '../api/orderService'; // 引入API
+import { getOrderDetailApi } from '../api/orderService';
 
 const loading = ref(true);
 const detail = ref({});
 
 onMounted(async () => {
-  // 模拟进入页面自动获取 ID 为 1001 的工单
-  const res = await getOrderDetailApi('GD-1001');
-  if (res.code === 200) {
-    detail.value = res.data;
+  try {
+    // 【重要】我们先死写 ID 为 3，因为你的 Token 和数据都是针对 ID 3 的
+    const data = await getOrderDetailApi(3);
+    
+    // 字段映射：左边是前端用的，右边是后端返回的
+    if (data) {
+      detail.value = {
+        id: data.order_no,             // 工单号 (WO2026...)
+        area: data.area,               // 区域
+        task: data.clean_requirement,  // 任务内容
+        level: '普通',                 // 后端没返回优先级，先写死
+        status: data.status            // completed
+      };
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
   }
-  loading.value = false;
 });
 </script>
