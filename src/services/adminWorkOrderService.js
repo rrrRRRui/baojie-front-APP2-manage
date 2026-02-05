@@ -80,3 +80,34 @@ export default {
     // 管理后台
     getAIScoreManagement
 }
+
+
+
+/**
+ * 1. AI打分接口（上传图片获取分数）
+ * @param {File} imageFile - 图片文件
+ * @param {string} scenario - 场景类型
+ */
+export async function getAIScore(imageFile, scenario) {
+    const formData = new FormData()
+    formData.append('file', imageFile)
+    formData.append('scenario', scenario)
+
+    return apiRequest('/app/ai/scoring', {
+        method: 'POST',
+        body: formData,
+        contentType: null  // 重要：让浏览器自动设置
+    })
+}
+
+/**
+ * 2. 保存评分接口
+ * @param {number} workOrderId - 工单ID
+ * @param {number} score - 分数
+ */
+export async function saveAIScore(workOrderId, score) {
+    return apiRequest(`/app/work-orders/${workOrderId}/ai-scoring`, {
+        method: 'POST',
+        body: JSON.stringify({ score: score })
+    })
+}

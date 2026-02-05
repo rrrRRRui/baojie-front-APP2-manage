@@ -14,5 +14,16 @@ const routes = [
   // ========== 新增路由结束 ==========
 
 
+  {
+    path: '/admin/ai-scoring',
+    name: 'AIScoringPage',
+    component: () => import('@/pages/admin/AIScoringPage.vue'),
+    meta: { requiresAuth: true, title: 'AI智能评分' }
+  }
+
+
+
+
+
 ]
 
