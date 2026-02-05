@@ -100,11 +100,52 @@ export async function getWorkOrderDetail(workOrderId) {
 }
 
 
+
+
+// 在 appWorkOrderService.js 的 export 部分前面添加：
+
+/**
+ * AI打分接口（上传图片获取分数）- APP端
+ * @param {File} imageFile - 图片文件
+ * @param {string} scenario - 场景类型
+ * @param {number} workOrderId - 工单ID
+ */
+export async function getAIScore(imageFile, scenario, workOrderId) {
+    const formData = new FormData()
+    formData.append('file', imageFile)
+    formData.append('scenario', scenario)
+    // 如果需要工单ID也传一下
+    if (workOrderId) {
+        formData.append('work_order_id', workOrderId)
+    }
+
+    return apiRequest('/app/ai/scoring', {
+        method: 'POST',
+        body: formData,
+        contentType: null  // 重要：让浏览器自动设置
+    })
+}
+
+/**
+ * 保存评分接口 - APP端
+ * @param {number} workOrderId - 工单ID
+ * @param {number} score - 分数
+ */
+export async function saveAIScore(workOrderId, score) {
+    return apiRequest(`/app/work-orders/${workOrderId}/ai-scoring`, {
+        method: 'POST',
+        body: JSON.stringify({ score: score })
+    })
+}
+
+
 export default {
     // APP端
     getAIScoreResult,
     processRescan,
     getWorkOrderDetail,
+    getAIScore,
+    saveAIScore
 
 
 }
